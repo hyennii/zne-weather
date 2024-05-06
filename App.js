@@ -9,12 +9,13 @@ import {View, StyleSheet, Text, ScrollView, Dimensions} from 'react-native';
 // Dimensions : 모바일 화면 크기 알려주는 api
 
 const { width:SCREEN_WIDTH } = Dimensions.get('window');
+const API_KEY = "cf67c910a0c6839756ac95fc3a08cd5e";
 
 export default function App() {
-  const [city, setCity] = useState("Loading...")
-  const [location, setLocation] = useState();
+  const [city, setCity] = useState("Loading...");
+  const [days, setDays] = useState([]);
   const [ok, setOk] = useState(true);
-  const ask = async () => {
+  const getWeather = async () => {
     const granted = await Location.requestForegroundPermissionsAsync()
     if (!granted){
       setOk(false); //유저가 권한 요청을 거절했을 때
@@ -24,9 +25,12 @@ export default function App() {
     const location = await Location.reverseGeocodeAsync({latitude,longitude}, {useGoogleMaps:false})
     setCity(location[0].city);  //유저의 위치 가져오기
 
+    const response = await fetch(`https://openweathermap.org/current/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&APPID=${API_KEY}`);
+    const json = await response.json();
+    console.log(json) // 에러발생....왜?
   };
   useEffect(() => {
-    ask();
+    getWeather();
   }, []);
 
   return (
