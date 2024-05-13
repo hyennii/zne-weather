@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import React, {useState, useEffect} from "react";
-import {View, StyleSheet, Text, ScrollView, Dimensions} from 'react-native';
+import {View, StyleSheet, Text, ScrollView, Dimensions, ActivityIndicator} from 'react-native';
 // div 대신 text view 사용
 // 모든 글자들은 text 태그에 사용
 // 모든 css들을 동일하게 스타일 사용할 순 없음(대부분 가능)
@@ -25,9 +25,19 @@ export default function App() {
     const location = await Location.reverseGeocodeAsync({latitude,longitude}, {useGoogleMaps:false})
     setCity(location[0].city);  //유저의 위치 가져오기
 
-    const response = await fetch(`https://openweathermap.org/current/data/2.5/onecall?lat=${latitude}&lon=${longitude}&exclude=alerts&APPID=${API_KEY}`);
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${API_KEY}`
+    );
+    // console.log(response)
     const json = await response.json();
-    console.log(json) // 에러발생....왜?
+		setDays(
+			json.list.filter((weather) => {
+				if (weather.dt_txt.includes("03:00:00")) {// "00:00:00"는 표준시 00시를 기준, 한국은 표준시보다 9시간을 더해야함. 따라서 한국의 정오(낮 12시)로 설정하려면 "03:00:00"으로 설정
+					return weather;
+				}
+			})
+		);
+    console.log(json)
   };
   useEffect(() => {
     getWeather();
@@ -39,22 +49,30 @@ export default function App() {
         <Text style={styles.cityName}>{city}</Text>
       </View>
       <ScrollView showsHorizontalScrollIndicator={false} pagingEnabled horizontal ContentContainerStyle={styles.weather}> 
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
+      {days === undefined ? (
+          <View style={{ ...styles.day, alignItems: "center" }}>
+          <ActivityIndicator
+            color="white"
+            style={{ marginTop: 10 }}
+            size="large"
+          />
         </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
-        <View style={styles.day}>
-          <Text style={styles.temp}>27</Text>
-          <Text style={styles.description}>Sunny</Text>
-        </View>
+      ) : (
+        days.map((day, index) => (
+          <View key={index} style={styles.day}>
+            <Text style={styles.temp}>
+         
+            </Text>
+            <Text style={styles.description}>{day.weather[0].main}</Text>
+            <Text style={styles.tinyText}>{day.weather[0].description}</Text>
+          </View>
+        ))
+      )}
       </ScrollView>
     </View>
   );
 }
+
 
 const styles= StyleSheet.create({
   container : {
@@ -83,9 +101,13 @@ const styles= StyleSheet.create({
   description : {
     fontSize : 60,
     marginTop : -30
-  }
+  },
+  tinyText: {
+    fontSize: 20,
+  },
 })
 // 기본적으로 모든 view는 Flex Container
 // RN에서 flex direction의 기본값은 column
 // RN에서는 height, width 사용 지양. flex를 이용한 비율 지향. (부모영역에 flex값 주고 자식들의 비율 설정)
 // ScrollView에 스타일 주려면 style prop이 아닌, ContentContainerStyle 써야함
+// 만약 days가 없다면 ActivityIndicator 노출시키기 (line.42)
