@@ -1,15 +1,26 @@
 import * as Location from 'expo-location';
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Text, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+import { Fontisto } from "@expo/vector-icons";
 // div 대신 text view 사용
 // 모든 글자들은 text 태그에 사용
 // 모든 css들을 동일하게 스타일 사용할 순 없음(대부분 가능)
 // horizontal : prop
 // 모바일기기에서 개발자도구 -> show element inspector로 각 요소 속성 확인 가능
 // Dimensions : 모바일 화면 크기 알려주는 api
+// icons.expo.fyi : 아이콘
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const API_KEY = "cf67c910a0c6839756ac95fc3a08cd5e";
+const icons = {
+  Clouds: "cloudy",
+  Clear: "day-sunny",
+  Atmosphere: "cloudy-gusts",
+  Snow: "snow",
+  Rain: "rains",
+  Drizzle: "rain",
+  Thunderstorm: "lightning",
+};
 
 export default function App() {
   const [city, setCity] = useState("Loading...");
@@ -58,10 +69,18 @@ export default function App() {
         ) : (
           days.map((day, index) => (
             <View key={index} style={styles.day}>
-              <Text style={styles.temp}>
-                {day.main?.temp ? day.main.temp.toFixed(1) : "N/A"}                                         
-                {/* toFixed(1) : 소수점 아래 한자리까지만 갖게 함 */}
-              </Text>
+              <View style={{
+                flexDirection:"row", 
+                alignItems:"center",
+                width:"100%",
+                justifyContent:"space-between"
+                }}>
+                <Text style={styles.temp}>
+                  {day.main?.temp ? day.main.temp.toFixed(1) : "N/A"}                                         
+                  {/* toFixed(1) : 소수점 아래 한자리까지만 갖게 함 */}
+                </Text>
+                <Fontisto name={icons[day.weather[0]?.main]} size={68} color="black" />
+              </View>
               <Text style={styles.description}>{day.weather[0]?.main ?? "No data"}</Text>
               <Text style={styles.tinyText}>{day.weather[0]?.description ?? "No description"}</Text>
             </View>
@@ -75,31 +94,41 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "skyblue"
+    backgroundColor: "skyblue",
   },
   city: {
-    flex: 1,
+    flex: 1.2,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   cityName: {
-    fontSize: 40,
-    fontWeight: "500"
+    fontSize: 58,
+    fontWeight: "500",
   },
   weather: {},
   day: {
     width: SCREEN_WIDTH,
     alignItems: "center",
+    alignItems: "flex-start",
+    paddingHorizontal: 20,
   },
   temp: {
+    marginTop: 50,
+    fontWeight: "600",
+    fontSize: 178,
     fontSize: 100,
-    marginTop: 50
   },
   description: {
+    marginTop: -30,
     fontSize: 60,
-    marginTop: -30
+    marginTop: -10,
+    fontSize: 30,
+    fontWeight: "500",
   },
   tinyText: {
     fontSize: 20,
+    marginTop: -5,
+    fontSize: 25,
+    fontWeight: "500",
   },
 });
